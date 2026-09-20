@@ -98,11 +98,10 @@ WINE_SIMULATE_WRITECOPY=1
 
 | Component | Status |
 | --- | --- |
-| Battle.net | Launches successfully |
-| World of Warcraft Retail | Launches and benchmarked |
-| World of Warcraft Classic | Testing planned |
-| World of Warcraft Forever | Not tested; testing begins after release |
-| Secure Boot | Unrelated to this compatibility tool |
+| Battle.net | Tested successfully |
+| World of Warcraft Retail | Benchmarked and passed a 60-minute stability test |
+| World of Warcraft Classic Era | Tested successfully in normal gameplay |
+| World of Warcraft Forever | Not yet available; testing planned after its release |
 
 ## Development builds
 
