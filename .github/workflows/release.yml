@@ -1,11 +1,12 @@
 name: Release
 
 on:
-  release:
-    types: [ published ]
   push:
     tags:
-      - 'GE-Proton*-*'
+      - 'ErgenProton-WoW-*'
+
+permissions:
+  contents: write
 
 concurrency:
   group: ${{ github.ref_name }}
@@ -31,7 +32,7 @@ jobs:
       shell: bash
       run: |
         git fetch origin +refs/tags/*:refs/tags/*
-       - name: Create Release
+    - name: Create Release
       id: create
       shell: bash
       run: |
