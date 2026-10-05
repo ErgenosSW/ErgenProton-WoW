@@ -103,6 +103,29 @@ WINE_SIMULATE_WRITECOPY=1
 | World of Warcraft Classic Era | Tested successfully in normal gameplay |
 | World of Warcraft Forever | Not yet available; testing planned after its release |
 
+## GameMode CPU integration (experimental)
+
+The optional host-side supervisor registers the actual WoW process with GameMode,
+including when a launcher activates GameMode only for its own processes.
+It leaves thread placement and priorities to Wine, the kernel and your existing
+GameMode policy. It does not promise higher FPS or make serial game code parallel.
+
+From the repository or extracted runner directory, install and test with:
+
+```bash
+bash tools/gamemode/install-user.sh --install
+systemctl --user start ergenwow-gamemode.service
+python3 tools/gamemode/wow_gamemode.py --report
+```
+
+A `gamemode_status` of `2` means the detected WoW process is registered.
+To stop and disable it: `systemctl --user disable --now ergenwow-gamemode.service`.
+Installation does not enable autostart. Run this on the host, not inside the
+Proton runtime; it requires Python 3, GameMode and a systemd user session.
+See [lifecycle, tests and limitations](tools/gamemode/README.md).
+Performance validation is still in progress; keep the same scene and settings
+when comparing the supervisor on and off.
+
 ## Development builds
 
 Development builds are produced by the `Development` GitHub Actions workflow. Their names include the source commit, for example:

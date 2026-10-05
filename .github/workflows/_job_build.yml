@@ -50,6 +50,9 @@ jobs:
           fetch-tags: true
           submodules: false
 
+      - name: Test WoW GameMode lifecycle
+        run: python3 -m unittest discover -s tools/gamemode -p "test_*.py" -v
+
       - name: Patch
         run: |
           git submodule update --init --filter=tree:0 --recursive
