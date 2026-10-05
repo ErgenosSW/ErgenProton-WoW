@@ -47,7 +47,7 @@ jobs:
           name="ErgenProton-WoW-dev-$(git rev-parse --short=8 HEAD)"
           mkdir build-ergenlab
           cd build-ergenlab
-          ../configure.sh --build-name="$name" --container-engine=docker --docker-opts='--cpus=6 --memory=12g --memory-swap=16g'
+          ../configure.sh --build-name="$name" --container-engine=docker --docker-opts='--cpus 4 --cpuset-cpus 0-3 --memory 12g --memory-swap 16g'
       - name: Fetch pinned unzip patches
         shell: bash
         run: |
@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           cd build-ergenlab
-          make -j6 J=6 redist 2>&1 | tee build.log
+          make -j4 J=4 redist 2>&1 | tee build.log
           sha512sum -c ./*.sha512sum
       - name: Upload package
         uses: https://data.forgejo.org/actions/upload-artifact@v3
