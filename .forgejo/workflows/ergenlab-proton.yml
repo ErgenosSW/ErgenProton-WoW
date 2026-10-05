@@ -1,6 +1,9 @@
 name: ErgenLab Proton
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ergenwow-gamemode
 
 concurrency:
   group: ergenlab-proton
