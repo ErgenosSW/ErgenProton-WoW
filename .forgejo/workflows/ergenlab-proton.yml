@@ -1,0 +1,78 @@
+name: ErgenLab Proton
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ergenlab-proton
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ergenlab-proton
+    timeout-minutes: 720
+    steps:
+      - name: Checkout
+        uses: https://data.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check host tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          for tool in docker git make python3 patch curl tar xz fontforge ccache; do
+            command -v "$tool"
+          done
+          docker info --format '{{.ServerVersion}}'
+          df -h .
+      - name: Test GameMode helper
+        run: python3 -B -m unittest discover -s tools/gamemode -p 'test_*.py' -v
+      - name: Prepare sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule update --init --recursive --jobs 4
+          bash patches/protonprep-valve-staging.sh
+          if find . -name '*.rej' -print -quit | grep -q .; then
+            echo 'Rejected patches found; refusing to build.' >&2
+            exit 1
+          fi
+      - name: Configure
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="ErgenProton-WoW-dev-$(git rev-parse --short=8 HEAD)"
+          mkdir build-ergenlab
+          cd build-ergenlab
+          ../configure.sh --build-name="$name" --container-engine=docker --docker-opts='--cpus=6 --memory=12g --memory-swap=16g'
+      - name: Fetch pinned unzip patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-ergenlab/obj-protonfixes-x86_64/downloads/unzip
+          cd build-ergenlab/obj-protonfixes-x86_64/downloads/unzip
+          curl -fL --retry 3 https://snapshot.debian.org/file/60d291e40b4cba025591bdd84f1b00779f9c68d6 -o unzip_6.0-29.debian.tar.xz.part
+          echo '14043e5ea351c02b3bc8676e1e6d20d79b9a690b6d7520e8138ac629cc048417  unzip_6.0-29.debian.tar.xz.part' | sha256sum -c -
+          mv unzip_6.0-29.debian.tar.xz.part unzip_6.0-29.debian.tar.xz
+      - name: Compile and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd build-ergenlab
+          make -j6 J=6 redist 2>&1 | tee build.log
+          sha512sum -c ./*.sha512sum
+      - name: Upload package
+        uses: https://data.forgejo.org/actions/upload-artifact@v3
+        with:
+          name: ErgenProton-WoW
+          if-no-files-found: error
+          path: |
+            build-ergenlab/*.tar.gz
+            build-ergenlab/*.sha512sum
+      - name: Upload build log
+        if: always()
+        uses: https://data.forgejo.org/actions/upload-artifact@v3
+        with:
+          name: build-log
+          path: build-ergenlab/build.log
+          if-no-files-found: ignore
