@@ -1813,6 +1813,15 @@ $(DIST_COPY_TARGETS): | $(DST_DIR)
 
 all-dist: $(DIST_COPY_TARGETS)
 
+# Host-side GameMode integration, installed separately from the container runtime.
+ERGENWOW_GAMEMODE_FILES := wow_gamemode.py install-user.sh ergenwow-gamemode.service README.md
+ERGENWOW_GAMEMODE_TARGETS := $(addprefix $(DST_BASE)/tools/gamemode/,$(ERGENWOW_GAMEMODE_FILES))
+$(ERGENWOW_GAMEMODE_TARGETS): $(DST_BASE)/tools/gamemode/%: $(SRCDIR)/tools/gamemode/%
+	mkdir -p $(dir $@)
+	cp -a $< $@
+
+all-dist: $(ERGENWOW_GAMEMODE_TARGETS)
+
 all-dist:
 	echo `date '+%s'` `GIT_DIR=$(abspath $(SRCDIR)/.git) git describe --tags` > $(DIST_VERSION)
 

@@ -50,6 +50,9 @@ jobs:
           fetch-tags: true
           submodules: false
 
+      - name: Test WoW GameMode lifecycle
+        run: python3 -m unittest discover -s tools/gamemode -p "test_*.py" -v
+
       - name: Patch
         run: |
           git submodule update --init --filter=tree:0 --recursive
@@ -63,6 +66,17 @@ jobs:
         working-directory: ./build
         run: |
           ../configure.sh --build-name=${{ inputs.name }} --container-engine=docker
+
+      - name: Fetch pinned Debian unzip patches
+        working-directory: ./build
+        run: |
+          mkdir -p obj-protonfixes-x86_64/downloads/unzip
+          cd obj-protonfixes-x86_64/downloads/unzip
+          curl --fail --location --retry 3 \
+            https://snapshot.debian.org/file/60d291e40b4cba025591bdd84f1b00779f9c68d6 \
+            -o unzip_6.0-29.debian.tar.xz.part
+          echo '14043e5ea351c02b3bc8676e1e6d20d79b9a690b6d7520e8138ac629cc048417  unzip_6.0-29.debian.tar.xz.part' | sha256sum --check -
+          mv unzip_6.0-29.debian.tar.xz.part unzip_6.0-29.debian.tar.xz
 
       - name: Make ${{ inputs.name }}
         working-directory: ./build
