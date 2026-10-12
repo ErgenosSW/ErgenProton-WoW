@@ -2,7 +2,7 @@
 
 ErgenProton-WoW is a focused [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) derivative for running Battle.net and World of Warcraft on Linux through [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher).
 
-The project currently targets World of Warcraft Retail. Classic support and broader hardware coverage still require validation.
+The project currently targets World of Warcraft Retail and Classic Era. Broader hardware coverage still requires validation.
 
 > [!IMPORTANT]
 > ErgenProton-WoW is an independent community project. It is not affiliated with or supported by Valve, GloriousEggroll, Blizzard Entertainment, or CodeWeavers. Report problems caused by this build here, not to the upstream GE-Proton or Valve issue trackers.
