@@ -2,10 +2,26 @@
 
 ErgenProton-WoW is a focused [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) derivative for running Battle.net and World of Warcraft on Linux through [umu-launcher](https://github.com/Open-Wine-Components/umu-launcher).
 
-The project currently targets World of Warcraft Retail. Classic support and broader hardware coverage still require validation.
+The project currently targets World of Warcraft Retail and Classic Era. Broader hardware coverage still requires validation.
 
 > [!IMPORTANT]
 > ErgenProton-WoW is an independent community project. It is not affiliated with or supported by Valve, GloriousEggroll, Blizzard Entertainment, or CodeWeavers. Report problems caused by this build here, not to the upstream GE-Proton or Valve issue trackers.
+
+## Current release
+
+**ErgenProton-WoW 0.2.0**
+
+Version 0.2.0 adds optional GameMode integration for World of Warcraft while keeping the existing WoW-focused Proton configuration.
+
+Official release: `v0.2.0`
+
+## What's new in 0.2.0
+
+- Added optional GameMode integration for World of Warcraft.
+- Added GameMode helper validation to the development workflow.
+- Improved development build and CI handling.
+- Fixed pinned unzip dependency handling in GitHub Actions.
+- Updated release metadata and compatibility tool identification.
 
 ## Current optimization
 
@@ -131,7 +147,7 @@ when comparing the supervisor on and off.
 Development builds are produced by the `Development` GitHub Actions workflow. Their names include the source commit, for example:
 
 ```text
-ErgenProton-WoW-0.1.0-dev-94e14f45
+ErgenProton-WoW-0.2.0-dev-<commit>
 ```
 
 Builds from development branches are test candidates, not stable releases.

@@ -1,31 +1,61 @@
 name: Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing tag to build and publish
+        required: true
+        type: string
   push:
     tags:
       - 'ErgenProton-WoW-*'
+      - 'v*'
 
 permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.ref_name }}
+  group: release-${{ inputs.release_tag || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      artifact_name: ${{ steps.release.outputs.artifact_name }}
+    steps:
+      - name: Resolve tag and artifact name
+        id: release
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+        run: |
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          if [[ "$RELEASE_TAG" == v* ]]; then
+            echo "artifact_name=ErgenProton-WoW-${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "artifact_name=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build
+    needs: prepare
     uses: ./.github/workflows/_job_build.yml
     with:
-      name: ${{ github.ref_name }}
+      name: ${{ needs.prepare.outputs.artifact_name }}
+      ref: ${{ needs.prepare.outputs.tag }}
 
   release:
     name: Release
-    needs: build
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
       with:
+        ref: ${{ needs.prepare.outputs.tag }}
         fetch-depth: 0
         fetch-tags: true
     - name: Tags
@@ -36,26 +66,23 @@ jobs:
       id: create
       shell: bash
       run: |
-        if gh release view "${{ github.ref_name }}" &>/dev/null; then
-          echo "Release ${{ github.ref_name }} already exists. Skipping creation."
+        if gh release view "${{ needs.prepare.outputs.tag }}" &>/dev/null; then
+          echo "Release ${{ needs.prepare.outputs.tag }} already exists. Skipping creation."
         else
-          gh release create "${{ github.ref_name }}" \
+          gh release create "${{ needs.prepare.outputs.tag }}" \
             --latest \
-            --title "${{ github.ref_name }} Released" \
+            --title "ErgenProton-WoW ${TAG_VERSION}" \
             --notes-from-tag \
             --verify-tag
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG_VERSION: ${{ needs.prepare.outputs.tag }}
         
   upload:
     name: Upload
-    needs: release
-    strategy:
-      matrix:
-        include:
-          - name: ${{ github.ref_name }}
+    needs: [prepare, release]
     uses: ./.github/workflows/_job_upload.yml
     with:
-      version: ${{ github.ref_name }}
-      name: ${{ matrix.name }}
+      version: ${{ needs.prepare.outputs.tag }}
+      name: ${{ needs.prepare.outputs.artifact_name }}

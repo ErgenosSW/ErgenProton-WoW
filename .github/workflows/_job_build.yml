@@ -6,6 +6,10 @@ on:
       name:
         required: true
         type: string
+      ref:
+        required: false
+        type: string
+        default: ''
 
 jobs:
   proton:
@@ -19,8 +23,6 @@ jobs:
           remove_dotnet: true
           remove_haskell: true
           remove_tool_cache: true
-          remove_codeql: true
-          remove_docker_images: true
           remove_swap: true
           remove_packages: |
             azure-cli google-cloud-cli google-chrome-stable firefox microsoft-edge-stable
@@ -46,6 +48,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           fetch-tags: true
           submodules: false
