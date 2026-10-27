@@ -10,38 +10,35 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   upload:
-    name: Upload ${{ inputs.name }}
-    strategy:
-      matrix:
-        include:
-          - file: ${{ inputs.name }}.tar.gz
-          - file: ${{ inputs.name }}.sha512sum
-
+    name: Verify and attach release archives to draft
     runs-on: ubuntu-latest
-
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.version }}
+      ARTIFACT_NAME: ${{ inputs.name }}
     steps:
-      - name: Verify release exists
-        run: |
-          gh release view "${{ inputs.version }}" \
-            --repo "${{ github.server_url }}/${{ github.repository }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download ${{ matrix.file }} artifact
-        uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
         with:
-          name: ${{ matrix.file }}
-
-      - name: Upload ${{ matrix.file }} to release
+          name: ${{ inputs.name }}.tar.gz
+          path: assets
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: ${{ inputs.name }}.sha512sum
+          path: assets
+      - name: Verify checksum and preserve published releases
+        working-directory: assets
         shell: bash
-        run: >-
-          gh
-          --repo "${{ github.server_url }}/${{ github.repository }}"
-          release upload
-          ${{ inputs.version }}
-          ${{ matrix.file }}
-          --clobber
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -s "$ARTIFACT_NAME.tar.gz"
+          test -s "$ARTIFACT_NAME.sha512sum"
+          sha512sum --check --strict "$ARTIFACT_NAME.sha512sum"
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          gh release upload "$RELEASE_TAG" \
+            "$ARTIFACT_NAME.tar.gz" "$ARTIFACT_NAME.sha512sum" --clobber

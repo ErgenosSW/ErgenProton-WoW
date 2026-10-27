@@ -13,11 +13,11 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ inputs.release_tag || github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   prepare:
@@ -32,7 +32,20 @@ jobs:
         shell: bash
         env:
           RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^(v|ErgenProton-WoW-)[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo 'Expected vX.Y.Z or ErgenProton-WoW-X.Y.Z' >&2
+            exit 1
+          }
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json; then
+            test "$(jq -r .isDraft release-state.json)" = true || {
+              echo 'Published release already exists; use a new version.' >&2
+              exit 1
+            }
+          fi
           echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           if [[ "$RELEASE_TAG" == v* ]]; then
             echo "artifact_name=ErgenProton-WoW-${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
@@ -52,8 +65,10 @@ jobs:
     name: Release
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       with:
         ref: ${{ needs.prepare.outputs.tag }}
         fetch-depth: 0
@@ -66,22 +81,29 @@ jobs:
       id: create
       shell: bash
       run: |
-        if gh release view "${{ needs.prepare.outputs.tag }}" &>/dev/null; then
-          echo "Release ${{ needs.prepare.outputs.tag }} already exists. Skipping creation."
+        set -euo pipefail
+        if gh release view "$RELEASE_TAG" --json isDraft > release-state.json; then
+          test "$(jq -r .isDraft release-state.json)" = true || {
+            echo 'Refusing to rebuild assets of an already published release.' >&2
+            exit 1
+          }
+          echo 'Existing draft retained.'
         else
-          gh release create "${{ needs.prepare.outputs.tag }}" \
-            --latest \
-            --title "ErgenProton-WoW ${TAG_VERSION}" \
-            --notes-from-tag \
-            --verify-tag
+          gh release create "$RELEASE_TAG" \
+            --draft --latest=false --verify-tag \
+            --title "$ARTIFACT_NAME" \
+            --notes-from-tag
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TAG_VERSION: ${{ needs.prepare.outputs.tag }}
+        RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        ARTIFACT_NAME: ${{ needs.prepare.outputs.artifact_name }}
         
   upload:
     name: Upload
     needs: [prepare, release]
+    permissions:
+      contents: write
     uses: ./.github/workflows/_job_upload.yml
     with:
       version: ${{ needs.prepare.outputs.tag }}
