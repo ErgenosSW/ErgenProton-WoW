@@ -4,7 +4,19 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 3
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 2
