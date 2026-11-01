@@ -1,0 +1,31 @@
+# Maintainer: Szymon Pilip <szymon.pilip@ergenos.dev>
+
+pkgname=ergenproton-wow
+pkgver=0.2.0
+pkgrel=1
+pkgdesc='Optional GE-Proton derivative focused on World of Warcraft compatibility'
+arch=('x86_64')
+url='https://github.com/ErgenosSW/ErgenProton-WoW'
+license=('BSD-3-Clause' 'LGPL-2.1-or-later' 'Zlib' 'OFL-1.1' 'custom')
+depends=('python')
+optdepends=(
+  'steam: discover the runner as a Steam compatibility tool'
+  'umu-launcher: launch Battle.net and World of Warcraft through UMU'
+)
+options=('!strip' 'emptydirs')
+_archive="ErgenProton-WoW-${pkgver}"
+_protondir="usr/share/steam/compatibilitytools.d/ErgenProton-WoW"
+source=("${_archive}.tar.gz::${url}/releases/download/v${pkgver}/${_archive}.tar.gz")
+sha512sums=('158c9ed689d0e24973c9cd4e00b222df6df49916a3e7eccbf73fd761dc85f4d3e1d6381c79892d5bef12c3ac8e6e73805b322db0f2a95d67b60e934b62bcd776')
+
+package() {
+  install -d "${pkgdir}/${_protondir}"
+  cp -a "${srcdir}/${_archive}/." "${pkgdir}/${_protondir}/"
+
+  install -Dm644 "${srcdir}/${_archive}/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 "${srcdir}/${_archive}/LICENSE.OFL" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE.OFL"
+  install -Dm644 "${srcdir}/${_archive}/PATENTS.AV1" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/PATENTS.AV1"
+}
