@@ -1,0 +1,20 @@
+pkgbase = ergenproton-wow
+	pkgdesc = Optional GE-Proton derivative focused on World of Warcraft compatibility
+	pkgver = 0.2.0
+	pkgrel = 1
+	url = https://github.com/ErgenosSW/ErgenProton-WoW
+	arch = x86_64
+	license = BSD-3-Clause
+	license = LGPL-2.1-or-later
+	license = Zlib
+	license = OFL-1.1
+	license = custom
+	depends = python
+	optdepends = steam: discover the runner as a Steam compatibility tool
+	optdepends = umu-launcher: launch Battle.net and World of Warcraft through UMU
+	options = !strip
+	options = emptydirs
+	source = ErgenProton-WoW-0.2.0.tar.gz::https://github.com/ErgenosSW/ErgenProton-WoW/releases/download/v0.2.0/ErgenProton-WoW-0.2.0.tar.gz
+	sha512sums = 158c9ed689d0e24973c9cd4e00b222df6df49916a3e7eccbf73fd761dc85f4d3e1d6381c79892d5bef12c3ac8e6e73805b322db0f2a95d67b60e934b62bcd776
+
+pkgname = ergenproton-wow
